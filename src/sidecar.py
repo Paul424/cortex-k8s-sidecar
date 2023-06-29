@@ -27,18 +27,6 @@ RESOURCE = "RESOURCE"
 # ENABLE_5XX = "ENABLE_5XX"
 # IGNORE_ALREADY_PROCESSED = "IGNORE_ALREADY_PROCESSED"
 
-##############################
-# Implementation notes:
-# - remove the two old implementations (SLEEP and default watch), also secret support is no longer needed
-# - add by default 2 workers: 
-#   1. full one-way sync (set all rulegroups and remove all rulegroups not backed by resources)
-#   2. watch changed configmaps
-# - implement fetching label from namespace (_get_namespace_label)
-# - implement one-way sync to catch missed events
-# - implement similar for alertmanager (use env to select)
-# - possible needs retries / backoff
-# - 
-
 # Cortex
 FUNCTION = "FUNCTION"  # either rules or alerts
 X_SCOPE_ORGID_DEFAULT = "X_SCOPE_ORGID_DEFAULT"
