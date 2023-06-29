@@ -12,10 +12,12 @@ jobs:
           fetch-depth: '0'
       - name: Bump version and push tag
         id: tagging
-        uses: anothrNick/github-tag-action@1.55.0
+        uses: anothrNick/github-tag-action@1.64.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          RELEASE_BRANCHES: main
           INITIAL_VERSION: 0.0.1
+          WITH_V: true
           DEFAULT_BUMP: none
           BRANCH_HISTORY: last
       - name: "Set up QEMU"
