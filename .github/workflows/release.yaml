@@ -14,10 +14,10 @@ jobs:
         id: tagging
         uses: anothrNick/github-tag-action@1.64.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           RELEASE_BRANCHES: main
           INITIAL_VERSION: 0.0.1
-          WITH_V: true
+          WITH_V: false
           DEFAULT_BUMP: none
           BRANCH_HISTORY: last
       - name: "Set up QEMU"
@@ -48,12 +48,12 @@ jobs:
         with:
           configuration: ".github/workflows/release-notes-config.json"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       - name: "Create Github Release"
         if: steps.tagging.outputs.part
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ steps.tagging.outputs.tag }}
           release_name: v${{ steps.tagging.outputs.tag }}
