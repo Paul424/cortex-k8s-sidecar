@@ -306,6 +306,8 @@ def prepare_payload(payload):
 #         return False
 
 def _get_namespace_label(v1, namespace, label, default):
+    if not label:
+        return default
     # prevent fetching all namespaces; so a filter on name is required
     ns = v1.list_namespace(field_selector=f'metadata.name={namespace}').items[0]
     value = ns.metadata.labels.get(label, default)

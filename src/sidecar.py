@@ -30,7 +30,7 @@ RESOURCE = "RESOURCE"
 # Cortex
 FUNCTION = "FUNCTION"  # either rules or alerts
 X_SCOPE_ORGID_DEFAULT = "X_SCOPE_ORGID_DEFAULT"
-X_SCOPE_ORGID_NAMESPACE_LABEL = "X_SCOPE_ORGID_NAMESPACE_LABEL"  # capsule.clastix.io/tenant
+X_SCOPE_ORGID_NAMESPACE_LABEL = "X_SCOPE_ORGID_NAMESPACE_LABEL"
 
 # Cortex ruler
 RULES_URL = "RULES_URL"  # /api/v1/rules
@@ -97,7 +97,7 @@ def main():
 
     function = os.getenv(FUNCTION, "rules")
     x_scope_orgid_default = os.getenv(X_SCOPE_ORGID_DEFAULT, 'system')
-    x_scope_orgid_namespace_label = os.getenv(X_SCOPE_ORGID_NAMESPACE_LABEL, 'system')
+    x_scope_orgid_namespace_label = os.getenv(X_SCOPE_ORGID_NAMESPACE_LABEL, '')
     rules_url = os.getenv(RULES_URL, None)
     alerts_url = os.getenv(ALERTS_URL, None)
 
