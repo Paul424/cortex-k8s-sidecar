@@ -47,10 +47,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x
           tags: |
-            docker.io/paul424/cortex-k8s-sidecar:latest
             docker.io/paul424/cortex-k8s-sidecar:${{ steps.tagging.outputs.tag }}
-            ghcr.io/paul424/k8s-sidecar:latest
-            ghcr.io/paul424/k8s-sidecar:${{ steps.tagging.outputs.tag }}
+            ghcr.io/paul424/cortex-k8s-sidecar:${{ steps.tagging.outputs.tag }}
       - name: "Build Changelog"
         if: steps.tagging.outputs.part
         id: build_changelog
