@@ -14,8 +14,8 @@ jobs:
         id: tagging
         uses: anothrNick/github-tag-action@1.55.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          INITIAL_VERSION: 1.0.0
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          INITIAL_VERSION: 0.0.1
           DEFAULT_BUMP: none
           BRANCH_HISTORY: last
       - name: "Set up QEMU"
@@ -43,7 +43,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GH_TOKEN }}
       - name: "Build and push"
         if: steps.tagging.outputs.part
         id: docker_build
@@ -65,12 +65,12 @@ jobs:
         with:
           configuration: ".github/workflows/release-notes-config.json"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: "Create Github Release"
         if: steps.tagging.outputs.part
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ steps.tagging.outputs.tag }}
           release_name: v${{ steps.tagging.outputs.tag }}
