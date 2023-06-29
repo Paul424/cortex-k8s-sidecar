@@ -2,8 +2,8 @@
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/Paul424/cortex-k8s-sidecar?style=flat)](https://github.com/Paul424/cortex-k8s-sidecar/releases)
 [![Release](https://github.com/Paul424/cortex-k8s-sidecar/actions/workflows/release.yaml/badge.svg)](https://github.com/Paul424/cortex-k8s-sidecar/actions/workflows/release.yaml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/Paul424/cortex-k8s-sidecar.svg?style=flat)](https://hub.docker.com/r/Paul424/cortex-k8s-sidecar/)
-![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/Paul424/cortex-k8s-sidecar)
+[![Docker Pulls](https://img.shields.io/docker/pulls/Paul424/cortex-k8s-sidecar.svg?style=flat)](https://hub.docker.com/r/paul424/cortex-k8s-sidecar/)
+![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/paul424/cortex-k8s-sidecar)
 # What?
 
 Cortex-k8s-sidecar is based on [kiwigrid/k8s-sidecar](https://github.com/kiwigrid/k8s-sidecar) (a sidecar to mount configmap/secret fields into a pod). This sidecar implementation however doesn't make the fields available over the filesystem, but posts the content to the Cortex API directly.
