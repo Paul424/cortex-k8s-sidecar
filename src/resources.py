@@ -9,6 +9,7 @@ import traceback
 import json
 import yaml
 import requests
+import re
 from collections import defaultdict
 from multiprocessing import Process
 from time import sleep
@@ -34,18 +35,18 @@ _list_namespace = defaultdict(lambda: {
     RESOURCE_CONFIGMAP: "list_config_map_for_all_namespaces"
 }})
 
-_resources_version_map = {
-    RESOURCE_SECRET: {},
-    RESOURCE_CONFIGMAP: {},
-}
-_resources_object_map = {
-    RESOURCE_SECRET: {},
-    RESOURCE_CONFIGMAP: {},
-}
-_resources_dest_folder_map = {
-    RESOURCE_SECRET: {},
-    RESOURCE_CONFIGMAP: {},
-}
+# _resources_version_map = {
+#     RESOURCE_SECRET: {},
+#     RESOURCE_CONFIGMAP: {},
+# }
+# _resources_object_map = {
+#     RESOURCE_SECRET: {},
+#     RESOURCE_CONFIGMAP: {},
+# }
+# _resources_dest_folder_map = {
+#     RESOURCE_SECRET: {},
+#     RESOURCE_CONFIGMAP: {},
+# }
 
 # Get logger
 logger = get_logger()
@@ -331,7 +332,6 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
         additional_args['namespace'] = namespace
 
     logger.info(f"Performing watch-based sync on {resource} resources: {additional_args}")
-    # logger.info(f"Watch {_list_namespace[namespace][resource]}")
 
     stream = watch.Watch().stream(getattr(v1, _list_namespace[namespace][resource]), **additional_args)
 
@@ -343,6 +343,9 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
 
         # rules
         if function == "rules":
+            if not re.match(r'prometheus-[^-]*-rulefiles.*', item.name):
+                logger.info(f"resource {item.name} is not a rules config")
+                continue
             for key in item.data.keys():
                 document = yaml.load(item.data[key], Loader=yaml.Loader)
                 for group in document['groups']:

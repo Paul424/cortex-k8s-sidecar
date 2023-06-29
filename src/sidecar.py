@@ -13,7 +13,7 @@ from logger import get_logger
 from resources import watch_for_changes, prepare_payload
 
 METHOD = "METHOD"
-UNIQUE_FILENAMES = "UNIQUE_FILENAMES"
+# UNIQUE_FILENAMES = "UNIQUE_FILENAMES"
 SKIP_TLS_VERIFY = "SKIP_TLS_VERIFY"
 # FOLDER = "FOLDER"
 # FOLDER_ANNOTATION = "FOLDER_ANNOTATION"
@@ -79,13 +79,13 @@ def main():
 
     _initialize_kubeclient_configuration()
 
-    unique_filenames = os.getenv(UNIQUE_FILENAMES)
-    if unique_filenames is not None and unique_filenames.lower() == "true":
-        logger.info(f"Unique filenames will be enforced.")
-        unique_filenames = True
-    else:
-        logger.info(f"Unique filenames will not be enforced.")
-        unique_filenames = False
+    # unique_filenames = os.getenv(UNIQUE_FILENAMES)
+    # if unique_filenames is not None and unique_filenames.lower() == "true":
+    #     logger.info(f"Unique filenames will be enforced.")
+    #     unique_filenames = True
+    # else:
+    #     logger.info(f"Unique filenames will not be enforced.")
+    #     unique_filenames = False
 
     # enable_5xx = os.getenv(ENABLE_5XX)
     # if enable_5xx is not None and enable_5xx.lower() == "true":
