@@ -15,7 +15,7 @@ jobs:
         with:
           push: false
           outputs: type=docker,dest=/tmp/k8s-sidecar.tar
-          tags: "Paul424/cortex-k8s-sidecar:testing"
+          tags: "paul424/cortex-k8s-sidecar:testing"
       - name: Prepare dummy server static resources
         run: |
           cp test/kubelogo.png test/server/static/
