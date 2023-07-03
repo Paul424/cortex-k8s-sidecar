@@ -17,7 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           RELEASE_BRANCHES: main
           INITIAL_VERSION: 0.0.1
-          WITH_V: false
+          WITH_V: true
       - name: "Set up QEMU"
         if: steps.tagging.outputs.part
         uses: docker/setup-qemu-action@v2
