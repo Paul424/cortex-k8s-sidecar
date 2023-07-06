@@ -102,6 +102,9 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
             if not re.match(r'prometheus-.*-rulefiles.*', item.metadata.name):
                 logger.info(f"resource {item.metadata.name} is not a rules config")
                 continue
+            if not item.data:
+                logger.info(f"resource {item.metadata.name} has no data")
+                continue
             for key in item.data.keys():
                 document = yaml.load(item.data[key], Loader=yaml.Loader)
                 for group in document['groups']:
@@ -124,6 +127,9 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
                         url = f'{rules_url}/{metadata.namespace}'
                         response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
+            if not item.data:
+                logger.info(f"resource {item.metadata.name} has no data")
+                continue
             if len(item.data.keys()) > 1:
                 raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
             (_, data) = next(iter(item.data.items()))
@@ -211,6 +217,9 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
             if not re.match(r'prometheus-.*-rulefiles.*', item.metadata.name):
                 logger.info(f"resource {item.metadata.name} is not a rules config")
                 continue
+            if not item.data:
+                logger.info(f"resource {item.metadata.name} has no data")
+                continue
             for key in item.data.keys():
                 document = yaml.load(item.data[key], Loader=yaml.Loader)
                 for group in document['groups']:
@@ -231,6 +240,9 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
                     url = f'{rules_url}/{metadata.namespace}'
                     response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
+            if not item.data:
+                logger.info(f"resource {item.metadata.name} has no data")
+                continue
             if len(item.data.keys()) > 1:
                 raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
             (_, data) = next(iter(item.data.items()))
