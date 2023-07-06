@@ -604,10 +604,10 @@ def alertmanager_equalize(orgid, alertmanager_dict_configmap, alertmanager_dict_
                 if not alertmanager_dict_configmap[orgid][file]['alertmanager_config'] \
                         and alertmanager_dict_cortex[orgid]['alertmanager_config']:
                     _del_alertmanager_config(orgid, alerts_url)
-                if alertmanager_dict_cortex[orgid]['alertmanager_config'] \
+                elif alertmanager_dict_cortex[orgid]['alertmanager_config'] \
                         and not alertmanager_dict_cortex[orgid]['alertmanager_config']:
                     _set_alertmanager_config(orgid, alerts_url, alertmanager_dict_configmap[orgid][file]['alertmanager_config'])
-                if alertmanager_dict_configmap[orgid][file]['alertmanager_config'] \
+                elif alertmanager_dict_configmap[orgid][file]['alertmanager_config'] \
                         != yaml.load(alertmanager_dict_cortex[orgid]['alertmanager_config'], Loader=yaml.Loader):
                     _set_alertmanager_config(orgid, alerts_url, alertmanager_dict_configmap[orgid][file]['alertmanager_config'])
             else:
