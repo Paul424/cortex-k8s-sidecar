@@ -57,14 +57,15 @@ def _get_namespace_label(v1, namespace, label, default):
     return value
 
 
-def _generate_namespace_labels(v1, label, default):
+def _generate_namespace_labels(v1, namespace, label, default):
     '''
     Lists all the x-scope-orgid's currently on the environment
     '''
     if default:
         yield default
     for ns in v1.list_namespace(label_selector=label).items:
-        yield ns.metadata.labels[label]
+        if namespace == 'ALL' or namespace == ns.metadata.name:
+            yield ns.metadata.labels[label]
 
 
 def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url, x_scope_orgid_default, 
@@ -123,24 +124,26 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
                         url = f'{rules_url}/{metadata.namespace}'
                         response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
-            for key in item.data.keys():
-                if event_type == "DELETED":
-                    headers = {
-                        'X-Scope-OrgID': _get_namespace_label(v1, metadata.namespace, x_scope_orgid_namespace_label, x_scope_orgid_default),
-                    }
-                    url = f'{alerts_url}'
-                    response = request_delete(url, headers)
+            if len(item.data.keys()) > 1:
+                raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
+            (_, data) = next(iter(item.data.items()))
+            if event_type == "DELETED":
+                headers = {
+                    'X-Scope-OrgID': _get_namespace_label(v1, metadata.namespace, x_scope_orgid_namespace_label, x_scope_orgid_default),
+                }
+                url = f'{alerts_url}'
+                response = request_delete(url, headers)
 
-                else:  # ADDED / MODIFIED
-                    headers = {
-                        'Content-Type': 'application/yaml',
-                        'X-Scope-OrgID': _get_namespace_label(v1, metadata.namespace, x_scope_orgid_namespace_label, x_scope_orgid_default),
-                    }
-                    payload = {
-                        'alertmanager_config': item.data[key]
-                    }
-                    url = f'{alerts_url}'
-                    response = request_post(url, headers, yaml.dump(payload))
+            else:  # ADDED / MODIFIED
+                headers = {
+                    'Content-Type': 'application/yaml',
+                    'X-Scope-OrgID': _get_namespace_label(v1, metadata.namespace, x_scope_orgid_namespace_label, x_scope_orgid_default),
+                }
+                payload = {
+                    'alertmanager_config': data,
+                }
+                url = f'{alerts_url}'
+                response = request_post(url, headers, yaml.dump(payload))
 
 
 def _watch_resource_loop(*args):
@@ -228,13 +231,24 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
                     url = f'{rules_url}/{metadata.namespace}'
                     response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
-            pass
+            if len(item.data.keys()) > 1:
+                raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
+            (_, data) = next(iter(item.data.items()))
+            headers = {
+                'Content-Type': 'application/yaml',
+                'X-Scope-OrgID': _get_namespace_label(v1, metadata.namespace, x_scope_orgid_namespace_label, x_scope_orgid_default),
+            }
+            payload = {
+                'alertmanager_config': data,
+            }
+            url = f'{alerts_url}'
+            response = request_post(url, headers, yaml.dump(payload))
 
     # Remove items that no longer have the resource 
 
     # For each x-scope-orgid
-    for x_scope_orgid in _generate_namespace_labels(v1, x_scope_orgid_namespace_label, x_scope_orgid_default):
-        logger.info(f"Sync back for x-scope-orgid {x_scope_orgid}")
+    for x_scope_orgid in _generate_namespace_labels(v1, namespace, x_scope_orgid_namespace_label, x_scope_orgid_default):
+        logger.info(f"Sync for x-scope-orgid {x_scope_orgid}")
         
         if function == "rules":
             # Fetch the active rule groups for given x-scope-orgid (tenant)
@@ -242,14 +256,19 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
                 rules_url,
                 x_scope_orgid,
             )
-            for namespace, rule_groups in namespace_rule_groups.items():
+            for rule_group_namespace, rule_groups in namespace_rule_groups.items():
+                if namespace != "ALL" and namespace != rule_group_namespace:
+                    logger.info(f"Skip rule groups in namespace {rule_group_namespace} because filtering for only namespace {namespace}")
+                    continue
+
                 for rule_group in rule_groups:
-                    if next((rg for rg in rgs if rg['x_scope_orgid'] == x_scope_orgid and rg['namespace'] == namespace and rg['name'] == rule_group['name']), None):
-                        logger.info(f"rule group {rule_group['name']} in namespace {namespace} for x-scope-orgid {x_scope_orgid} is found")
+                    if next((rg for rg in rgs if rg['x_scope_orgid'] == x_scope_orgid and rg['namespace'] == rule_group_namespace and rg['name'] == rule_group['name']), None):
+                        logger.info(f"rule group {rule_group['name']} in namespace {rule_group_namespace} for x-scope-orgid {x_scope_orgid} is found")
                     else:
-                        logger.info(f"rule group {rule_group['name']} in namespace {namespace} for x-scope-orgid {x_scope_orgid} is not found; deleting rule-group")
-                        _delete_rule_group(rules_url, namespace, x_scope_orgid, rule_group['name'])
+                        logger.info(f"rule group {rule_group['name']} in namespace {rule_group_namespace} for x-scope-orgid {x_scope_orgid} is not found; deleting rule-group")
+                        _delete_rule_group(rules_url, rule_group_namespace, x_scope_orgid, rule_group['name'])
         else:  # alerts
+            # An x-scope-orgid only has one config, nothing to delete
             pass
 
 
