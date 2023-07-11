@@ -87,7 +87,7 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
         additional_args['namespace'] = namespace
         list_cm_f = v1.list_namespaced_config_map
 
-    logger.info(f"Performing watch-based sync on {resource} resources: {additional_args}")
+    logger.info(f"> Performing watch-based sync on {resource} resources: {additional_args}")
 
     stream = watch.Watch().stream(list_cm_f, **additional_args)
 
@@ -100,11 +100,12 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
         # rules
         if function == "rules":
             if not re.match(r'prometheus-.*-rulefiles.*', item.metadata.name):
-                logger.info(f"resource {item.metadata.name} is not a rules config")
+                logger.info(f"rules resource {item.metadata.name} is not a rules config")
                 continue
             if not item.data:
-                logger.info(f"resource {item.metadata.name} has no data")
+                logger.info(f"rules resource {item.metadata.name} has no data")
                 continue
+            logger.info(f"processing rules resource {item.metadata.name}")
             for key in item.data.keys():
                 document = yaml.load(item.data[key], Loader=yaml.Loader)
                 for group in document['groups']:
@@ -128,10 +129,11 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
                         response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
             if not item.data:
-                logger.info(f"resource {item.metadata.name} has no data")
+                logger.info(f"alerts resource {item.metadata.name} has no data")
                 continue
             if len(item.data.keys()) > 1:
                 raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
+            logger.info(f"processing alerts resource {item.metadata.name}")
             (_, data) = next(iter(item.data.items()))
             if event_type == "DELETED":
                 headers = {
@@ -151,6 +153,7 @@ def _watch_resource_iterator(function, label, label_value, rules_url, alerts_url
                 url = f'{alerts_url}'
                 response = request_post(url, headers, yaml.dump(payload))
 
+    logger.info(f"< Performing watch-based sync on {resource} resources")
 
 def _watch_resource_loop(*args):
     while True:
@@ -194,6 +197,8 @@ def _delete_rule_group(rules_url, namespace, x_scope_orgid, name):
 
 def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_default, 
                         x_scope_orgid_namespace_label, namespace, resource):
+    logger.info(f"> Sync {resource}")
+
     v1 = client.CoreV1Api()
         
     # Fetch all the configmaps
@@ -215,11 +220,12 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
         metadata = item.metadata
         if function == "rules":
             if not re.match(r'prometheus-.*-rulefiles.*', item.metadata.name):
-                logger.info(f"resource {item.metadata.name} is not a rules config")
+                logger.info(f"rules resource {item.metadata.name} is not a rules config")
                 continue
             if not item.data:
-                logger.info(f"resource {item.metadata.name} has no data")
+                logger.info(f"rules resource {item.metadata.name} has no data")
                 continue
+            logger.info(f"processing rules resource {item.metadata.name}")
             for key in item.data.keys():
                 document = yaml.load(item.data[key], Loader=yaml.Loader)
                 for group in document['groups']:
@@ -241,10 +247,11 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
                     response = request_post(url, headers, yaml.dump(payload))
         else:  # alerts
             if not item.data:
-                logger.info(f"resource {item.metadata.name} has no data")
+                logger.info(f"alerts resource {item.metadata.name} has no data")
                 continue
             if len(item.data.keys()) > 1:
                 raise RuntimeError(f'Alert definitions should only have one entry (configmap {item.metadata.name} has {len(item.data.keys())} items)')
+            logger.info(f"processing alerts resource {item.metadata.name}")
             (_, data) = next(iter(item.data.items()))
             headers = {
                 'Content-Type': 'application/yaml',
@@ -260,7 +267,7 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
 
     # For each x-scope-orgid
     for x_scope_orgid in _generate_namespace_labels(v1, namespace, x_scope_orgid_namespace_label, x_scope_orgid_default):
-        logger.info(f"Sync for x-scope-orgid {x_scope_orgid}")
+        logger.info(f"Cleanup for x-scope-orgid {x_scope_orgid}")
         
         if function == "rules":
             # Fetch the active rule groups for given x-scope-orgid (tenant)
@@ -273,6 +280,7 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
                     logger.info(f"Skip rule groups in namespace {rule_group_namespace} because filtering for only namespace {namespace}")
                     continue
 
+                logger.info(f"processing {len(rule_groups)} rule groups in namespace {rule_group_namespace}")
                 for rule_group in rule_groups:
                     if next((rg for rg in rgs if rg['x_scope_orgid'] == x_scope_orgid and rg['namespace'] == rule_group_namespace and rg['name'] == rule_group['name']), None):
                         logger.info(f"rule group {rule_group['name']} in namespace {rule_group_namespace} for x-scope-orgid {x_scope_orgid} is found")
@@ -282,6 +290,8 @@ def _sync(function, label, label_value, rules_url, alerts_url, x_scope_orgid_def
         else:  # alerts
             # An x-scope-orgid only has one config, nothing to delete
             pass
+
+    logger.info(f"< Sync {resource}")
 
 
 def _sync_loop(function, *args):
